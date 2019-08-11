@@ -16,6 +16,24 @@ module.exports = function (){
   
   pap.handle = function ( selection, forced ){
     if ( !enabled ) {
+      // FinanceIT@CSE: do my magic here.
+      if (elementTools.isNode(selection)) {
+        var iri = selection.iri();
+        console.log("please load items related to " + iri);
+
+        var bgloadUrl = "data/load?iri=" + encodeURIComponent(iri);
+        d3.xhr(bgloadUrl, "application/text", function ( error, request ){
+          if (error) {
+            console.log("Error loading data using " + bgloadUrl);
+          } else {
+            // Server should return us a JSON file name (without the extension)
+            // which we will use as the new fragment of the URL, which in turn
+            // causes a refresh of the graph.
+            var file_json = request.responseText;
+            console.log("Response from loading data is " + file_json);
+          }
+        });
+      }
       return;
     }
     
