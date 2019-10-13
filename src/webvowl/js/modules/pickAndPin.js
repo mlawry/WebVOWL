@@ -5,7 +5,7 @@ module.exports = function (){
   var pap = {},
     enabled = false,
     pinnedElements = [];
-  
+
   pap.addPinnedElement = function ( element ){
     // check if element is already in list
     var indexInArray = pinnedElements.indexOf(element);
@@ -13,7 +13,7 @@ module.exports = function (){
       pinnedElements.push(element);
     }
   };
-  
+
   pap.handle = function ( selection, forced ){
     if ( !enabled ) {
       // FinanceIT@CSE: do my magic here.
@@ -22,7 +22,7 @@ module.exports = function (){
         console.log("please load items related to " + iri);
 
         var bgloadUrl = "data/load?iri=" + encodeURIComponent(iri);
-        d3.xhr(bgloadUrl, "application/text", function ( error, request ){
+        d3.xhr(bgloadUrl, "text/plain", function ( error, request ) {
           if (error) {
             console.log("Error loading data using " + bgloadUrl);
           } else {
@@ -31,12 +31,18 @@ module.exports = function (){
             // causes a refresh of the graph.
             var file_json = request.responseText;
             console.log("Response from loading data is " + file_json);
+
+            // Santy check, require file name to be less than 20 characters in case
+            // something other than the expected is returned.
+            if (file_json && file_json.length < 20) {
+              location.hash = encodeURIComponent(file_json);
+            }
           }
         });
       }
       return;
     }
-    
+
     if ( !forced ) {
       if ( wasNotDragged() ) {
         return;
@@ -49,27 +55,27 @@ module.exports = function (){
         return;
       }
     }
-    
+
     if ( !selection.pinned() ) {
       selection.drawPin();
       pap.addPinnedElement(selection);
     }
   };
-  
+
   function wasNotDragged(){
     return !d3.event.defaultPrevented;
   }
-  
+
   function hasNoParallelProperties( property ){
     return _.intersection(property.domain().links(), property.range().links()).length === 1;
   }
-  
+
   pap.enabled = function ( p ){
     if ( !arguments.length ) return enabled;
     enabled = p;
     return pap;
   };
-  
+
   pap.reset = function (){
     pinnedElements.forEach(function ( element ){
       element.removePin();
@@ -77,6 +83,6 @@ module.exports = function (){
     // Clear the array of stored nodes
     pinnedElements.length = 0;
   };
-  
+
   return pap;
 };
